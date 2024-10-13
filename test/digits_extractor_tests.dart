@@ -22,7 +22,7 @@ void main() {
 
       expect(
         digitsExtractor.list,
-        ["-","1", "2", ".", "3", "4"],
+        ["-", "1", "2", ".", "3", "4"],
         reason: "Should be precise up to two digits and negative",
       );
     },

@@ -1,5 +1,6 @@
 class DigitsExtractor {
   String _value;
+  late num mantissa;
 
   late List<String> _list;
 
@@ -29,9 +30,10 @@ class DigitsExtractor {
       } else {
         last.padRight(2, '0');
       }
-
+      mantissa = num.parse(tempList.first);
       _list = [...tempList.first.split(''), '.', ...last.split('')];
     } else {
+      mantissa = num.parse(_value);
       _list = _value.split('');
     }
   }

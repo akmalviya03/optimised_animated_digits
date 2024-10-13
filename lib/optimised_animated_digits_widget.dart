@@ -21,6 +21,7 @@ class OptimisedAnimatedDigit extends StatefulWidget {
     _negativeColor = negativeColor ?? Colors.black;
     _positiveColor = positiveColor ?? Colors.black;
     _neutralColor = neutralColor ?? Colors.black;
+    _digitsExtractor = DigitsExtractor(numericValue: value);
   }
   final num value;
   late final Color _negativeColor;
@@ -31,6 +32,7 @@ class OptimisedAnimatedDigit extends StatefulWidget {
   final int milliseconds;
   final Widget? decimal;
   final Widget? digitsSeparator;
+  late final DigitsExtractor _digitsExtractor;
   @override
   State<OptimisedAnimatedDigit> createState() => _OptimisedAnimatedDigitState();
 }
@@ -39,12 +41,10 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     with TickerProviderStateMixin {
   late AnimationController animationController;
   Color? digitsColor;
-  late DigitsExtractor _digitsExtractor;
 
   @override
   void initState() {
     super.initState();
-    _digitsExtractor = DigitsExtractor(numericValue: widget.value);
     animationController = AnimationController(
       vsync: this,
       duration: Duration(
@@ -59,7 +59,13 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     num tempOldValue = oldWidget.value;
     num tempNewValue = widget.value;
     if (tempNewValue != tempOldValue) {
-      if (widget.differentDigitsColor) {
+      if (widget._digitsExtractor.mantissa <
+          oldWidget._digitsExtractor.mantissa) {
+        digitsColor = widget._negativeColor;
+      } else if (widget._digitsExtractor.mantissa >
+          oldWidget._digitsExtractor.mantissa) {
+        digitsColor = widget._positiveColor;
+      } else if (widget.differentDigitsColor) {
         digitsColor = null;
       } else {
         if (tempNewValue < tempOldValue) {
@@ -70,7 +76,6 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
           digitsColor = widget._negativeColor;
         }
       }
-      _digitsExtractor.updateWith(value: widget.value);
       animationController.forward(from: 0);
     }
   }
@@ -118,7 +123,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
       return _getDecimalSpan();
     } else {
       PlaceholderAlignment alignment = PlaceholderAlignment.middle;
-      if (_digitsExtractor.isFractional &&
+      if (widget._digitsExtractor.isFractional &&
           widget.decimal == null &&
           widget.digitsSeparator == null) {
         alignment = PlaceholderAlignment.baseline;
@@ -143,10 +148,10 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
   Widget build(BuildContext context) {
     List<InlineSpan> widgetSpanFirst = [];
     int index = 0;
-    if (_digitsExtractor.list.first == '-') {
+    if (widget._digitsExtractor.list.first == '-') {
       index = 1;
       PlaceholderAlignment signAlignment = PlaceholderAlignment.baseline;
-      if (_digitsExtractor.isFractional &&
+      if (widget._digitsExtractor.isFractional &&
           widget.decimal == null &&
           widget.digitsSeparator == null) {
         signAlignment = PlaceholderAlignment.middle;
@@ -162,7 +167,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     }
 
     Widget? digitsSeparator = widget.digitsSeparator;
-    int end = _digitsExtractor.list.length;
+    int end = widget._digitsExtractor.list.length;
 
     if (digitsSeparator != null) {
       end = (end * 2) - 1;
@@ -170,7 +175,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         int calculatedIndex = i ~/ 2;
         if (i.isEven) {
           widgetSpanFirst.add(
-            _itemBuilder(_digitsExtractor.list[calculatedIndex]),
+            _itemBuilder(widget._digitsExtractor.list[calculatedIndex]),
           );
         } else {
           widgetSpanFirst.add(_separatorInlineSpan(digitsSeparator));
@@ -179,7 +184,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     } else {
       for (int i = index; i < end; i++) {
         widgetSpanFirst.add(
-          _itemBuilder(_digitsExtractor.list[i]),
+          _itemBuilder(widget._digitsExtractor.list[i]),
         );
       }
     }
