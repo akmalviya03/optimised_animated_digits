@@ -7,6 +7,11 @@ without compromising number precision and application performance.
 * No use of scroll views for scrolling effects.
 * Jank Free
 
+## Demo Video
+
+![The example app running in iOS](https://github.com/akmalviya03/optimised_animated_digits/blob/master/demo.gif)
+
+
 ## Usage
 
 ```dart
