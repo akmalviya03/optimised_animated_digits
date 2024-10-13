@@ -1,3 +1,7 @@
+## 0.0.4
+
+* Update colors only changed right most digits
+
 ## 0.0.3
 
 * Change all digits color when mantissa increases or decreases

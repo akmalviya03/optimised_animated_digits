@@ -48,20 +48,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   OptimisedAnimatedDigit(
                     milliseconds: 500,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: false,
                     textStyle: const TextStyle(fontSize: 20),
                   ),
                   OptimisedAnimatedDigit(
                     milliseconds: 100,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: true,
                     positiveColor: Colors.green,
                     textStyle: const TextStyle(fontSize: 20),
                   ),
                   OptimisedAnimatedDigit(
                     milliseconds: 100,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: true,
                     positiveColor: Colors.green,
                     negativeColor: Colors.red,
                     textStyle: const TextStyle(fontSize: 20),
@@ -69,7 +66,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   OptimisedAnimatedDigit(
                     milliseconds: 100,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: true,
                     positiveColor: Colors.green,
                     negativeColor: Colors.red,
                     neutralColor: Colors.blueGrey,
@@ -78,7 +74,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   OptimisedAnimatedDigit(
                     milliseconds: 100,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: true,
                     positiveColor: Colors.green,
                     negativeColor: Colors.red,
                     neutralColor: Colors.black,
@@ -88,7 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   OptimisedAnimatedDigit(
                     milliseconds: 100,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: true,
                     positiveColor: Colors.green,
                     negativeColor: Colors.red,
                     neutralColor: Colors.black,
@@ -98,7 +92,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   OptimisedAnimatedDigit(
                     milliseconds: 100,
                     value: snapshot.data ?? 0.0,
-                    differentDigitsColor: false,
                     positiveColor: Colors.green,
                     negativeColor: Colors.red,
                     neutralColor: Colors.black,
@@ -112,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
           }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          double value = openPrice +
+          double value =openPrice= openPrice +
               (random.nextBool() ? random.nextDouble() : -random.nextDouble());
           streamController.add(value);
         },

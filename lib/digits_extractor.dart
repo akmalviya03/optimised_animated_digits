@@ -1,9 +1,11 @@
 class DigitsExtractor {
   String _value;
-  late num mantissa;
 
   late List<String> _list;
 
+  int _firstUnMatchedIndex = 0;
+
+  int get firstMatchedIndex => _firstUnMatchedIndex;
   List<String> get list => _list;
 
   DigitsExtractor({required num numericValue}) : _value = "$numericValue" {
@@ -30,11 +32,22 @@ class DigitsExtractor {
       } else {
         last.padRight(2, '0');
       }
-      mantissa = num.parse(tempList.first);
       _list = [...tempList.first.split(''), '.', ...last.split('')];
     } else {
-      mantissa = num.parse(_value);
       _list = _value.split('');
+    }
+  }
+
+  void calculateFirstUnMatchedIndex(List<String> list){
+    if (_list.length < list.length || _list.length  > list.length) {
+      _firstUnMatchedIndex = 0;
+    }else{
+      for(int i =0 ; i< _list.length ; i++){
+        if(_list[i] != list[i]){
+          _firstUnMatchedIndex = i;
+          break;
+        }
+      }
     }
   }
 

@@ -4,18 +4,12 @@ class _SingleSequence extends StatefulWidget {
   const _SingleSequence({
     required this.value,
     required this.animation,
-    this.digitColor,
-    required this.negativeColor,
-    required this.positiveColor,
-    required this.neutralColor,
+    required this.digitColor,
     required this.textStyle,
   });
   final String value;
   final Animation<double> animation;
-  final Color? digitColor;
-  final Color negativeColor;
-  final Color positiveColor;
-  final Color neutralColor;
+  final Color digitColor;
   final TextStyle textStyle;
   @override
   State<_SingleSequence> createState() => _SingleSequenceState();
@@ -25,7 +19,6 @@ class _SingleSequenceState extends State<_SingleSequence> {
   late Animation<double> _animation;
   num _oldValue = 0;
   num _newValue = 0;
-  Color _textColor = Colors.black;
 
   @override
   void initState() {
@@ -39,18 +32,6 @@ class _SingleSequenceState extends State<_SingleSequence> {
     super.didUpdateWidget(oldWidget);
     num tempOldValue = int.parse(oldWidget.value);
     num tempNewValue = int.parse(widget.value);
-    Color? digitColor = widget.digitColor;
-    if (digitColor == null) {
-      if (tempNewValue < tempOldValue) {
-        _textColor = widget.negativeColor;
-      } else if (tempNewValue > tempOldValue) {
-        _textColor = widget.positiveColor;
-      } else {
-        _textColor = widget.neutralColor;
-      }
-    } else {
-      _textColor = digitColor;
-    }
 
     if (tempNewValue < tempOldValue) {
       _oldValue = tempNewValue;
@@ -79,7 +60,7 @@ class _SingleSequenceState extends State<_SingleSequence> {
       child: Text(
         key: ValueKey<num>(value),
         '$value',
-        style: widget.textStyle.copyWith(color: _textColor),
+        style: widget.textStyle.copyWith(color: widget.digitColor),
       ),
     );
   }

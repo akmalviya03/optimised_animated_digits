@@ -18,7 +18,6 @@ without compromising number precision and application performance.
     OptimisedAnimatedDigit(
       milliseconds: 500,
       value: snapshot.data ?? 0.0,
-      differentDigitsColor: false,
       textStyle: const TextStyle(fontSize: 20),
     ),
 ```

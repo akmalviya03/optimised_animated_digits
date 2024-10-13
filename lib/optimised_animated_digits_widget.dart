@@ -10,7 +10,6 @@ class OptimisedAnimatedDigit extends StatefulWidget {
     Color? negativeColor,
     Color? positiveColor,
     Color? neutralColor,
-    required this.differentDigitsColor,
     required this.textStyle,
     required this.milliseconds,
     this.decimal,
@@ -27,7 +26,6 @@ class OptimisedAnimatedDigit extends StatefulWidget {
   late final Color _negativeColor;
   late final Color _positiveColor;
   late final Color _neutralColor;
-  final bool differentDigitsColor;
   final TextStyle textStyle;
   final int milliseconds;
   final Widget? decimal;
@@ -40,7 +38,8 @@ class OptimisedAnimatedDigit extends StatefulWidget {
 class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     with TickerProviderStateMixin {
   late AnimationController animationController;
-  Color? digitsColor;
+  late Color digitsColor;
+  late final DigitsExtractor digitsExtractor;
 
   @override
   void initState() {
@@ -51,6 +50,8 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         milliseconds: widget.milliseconds,
       ),
     );
+    digitsExtractor = widget._digitsExtractor;
+    digitsColor = widget._neutralColor;
   }
 
   @override
@@ -59,22 +60,14 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     num tempOldValue = oldWidget.value;
     num tempNewValue = widget.value;
     if (tempNewValue != tempOldValue) {
-      if (widget._digitsExtractor.mantissa <
-          oldWidget._digitsExtractor.mantissa) {
+      digitsExtractor
+          .calculateFirstUnMatchedIndex(oldWidget._digitsExtractor.list);
+      if (tempNewValue < tempOldValue) {
         digitsColor = widget._negativeColor;
-      } else if (widget._digitsExtractor.mantissa >
-          oldWidget._digitsExtractor.mantissa) {
+      } else if (tempNewValue > tempOldValue) {
         digitsColor = widget._positiveColor;
-      } else if (widget.differentDigitsColor) {
-        digitsColor = null;
       } else {
-        if (tempNewValue < tempOldValue) {
-          digitsColor = widget._negativeColor;
-        } else if (tempNewValue > tempOldValue) {
-          digitsColor = widget._positiveColor;
-        } else {
-          digitsColor = widget._negativeColor;
-        }
+        digitsColor = widget._negativeColor;
       }
       animationController.forward(from: 0);
     }
@@ -87,7 +80,6 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     } else {
       return _singleCharInlineSpan(
         '.',
-        digitsColor ?? widget._neutralColor,
         PlaceholderAlignment.baseline,
       );
     }
@@ -95,14 +87,13 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
 
   InlineSpan _singleCharInlineSpan(
     String char,
-    Color color,
     PlaceholderAlignment placeHolderAlignment,
   ) {
     return WidgetSpan(
       child: Text(
         char,
         style: widget.textStyle.copyWith(
-          color: color,
+          color: digitsColor,
         ),
       ),
       baseline: TextBaseline.alphabetic,
@@ -118,12 +109,12 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     );
   }
 
-  InlineSpan _itemBuilder(String value) {
+  InlineSpan _itemBuilder(String value, Color digitColor) {
     if (value == '.') {
       return _getDecimalSpan();
     } else {
       PlaceholderAlignment alignment = PlaceholderAlignment.middle;
-      if (widget._digitsExtractor.isFractional &&
+      if (digitsExtractor.isFractional &&
           widget.decimal == null &&
           widget.digitsSeparator == null) {
         alignment = PlaceholderAlignment.baseline;
@@ -134,10 +125,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         child: _SingleSequence(
           value: value,
           animation: animationController.view,
-          digitColor: digitsColor,
-          negativeColor: widget._negativeColor,
-          positiveColor: widget._positiveColor,
-          neutralColor: widget._neutralColor,
+          digitColor: digitColor,
           textStyle: widget.textStyle,
         ),
       );
@@ -148,10 +136,10 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
   Widget build(BuildContext context) {
     List<InlineSpan> widgetSpanFirst = [];
     int index = 0;
-    if (widget._digitsExtractor.list.first == '-') {
+    if (digitsExtractor.list.first == '-') {
       index = 1;
       PlaceholderAlignment signAlignment = PlaceholderAlignment.baseline;
-      if (widget._digitsExtractor.isFractional &&
+      if (digitsExtractor.isFractional &&
           widget.decimal == null &&
           widget.digitsSeparator == null) {
         signAlignment = PlaceholderAlignment.middle;
@@ -160,14 +148,13 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
       widgetSpanFirst.add(
         _singleCharInlineSpan(
           '-',
-          digitsColor ?? widget._negativeColor,
           signAlignment,
         ),
       );
     }
 
     Widget? digitsSeparator = widget.digitsSeparator;
-    int end = widget._digitsExtractor.list.length;
+    int end = digitsExtractor.list.length;
 
     if (digitsSeparator != null) {
       end = (end * 2) - 1;
@@ -175,7 +162,12 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         int calculatedIndex = i ~/ 2;
         if (i.isEven) {
           widgetSpanFirst.add(
-            _itemBuilder(widget._digitsExtractor.list[calculatedIndex]),
+            _itemBuilder(
+              digitsExtractor.list[calculatedIndex],
+              calculatedIndex >= digitsExtractor.firstMatchedIndex
+                  ? digitsColor
+                  : widget._neutralColor,
+            ),
           );
         } else {
           widgetSpanFirst.add(_separatorInlineSpan(digitsSeparator));
@@ -184,7 +176,12 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     } else {
       for (int i = index; i < end; i++) {
         widgetSpanFirst.add(
-          _itemBuilder(widget._digitsExtractor.list[i]),
+          _itemBuilder(
+            digitsExtractor.list[i],
+            index >= digitsExtractor.firstMatchedIndex
+                ? digitsColor
+                : widget._neutralColor,
+          ),
         );
       }
     }

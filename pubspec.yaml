@@ -2,7 +2,7 @@ name: optimised_animated_digits
 description: "A widget that allows you to animate digits change of any number 
 without compromising number precision and application performance.
 "
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/akmalviya03/optimised_animated_digits.git
 
 environment:
