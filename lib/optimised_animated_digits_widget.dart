@@ -39,7 +39,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     with TickerProviderStateMixin {
   late AnimationController animationController;
   late Color digitsColor;
-  late final DigitsExtractor digitsExtractor;
+  late DigitsExtractor digitsExtractor;
 
   @override
   void initState() {
@@ -57,6 +57,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
   @override
   void didUpdateWidget(covariant OptimisedAnimatedDigit oldWidget) {
     super.didUpdateWidget(oldWidget);
+    digitsExtractor = widget._digitsExtractor;
     num tempOldValue = oldWidget.value;
     num tempNewValue = widget.value;
     if (tempNewValue != tempOldValue) {

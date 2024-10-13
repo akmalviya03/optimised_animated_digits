@@ -1,6 +1,7 @@
 ## 0.0.4
 
 * Update colors only changed right most digits
+* Fixed widget not changing 
 
 ## 0.0.3
 
