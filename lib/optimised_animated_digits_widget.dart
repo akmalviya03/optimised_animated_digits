@@ -179,7 +179,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         widgetSpanFirst.add(
           _itemBuilder(
             digitsExtractor.list[i],
-            index >= digitsExtractor.firstMatchedIndex
+            i >= digitsExtractor.firstMatchedIndex
                 ? digitsColor
                 : widget._neutralColor,
           ),
