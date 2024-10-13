@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:optimised_animated_digits/optimised_animated_digits.dart';
 
@@ -37,72 +38,24 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    ValueNotifier
     return Scaffold(
-      body: StreamBuilder<num>(
-          stream: streamController.stream,
-          builder: (context, snapshot) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  OptimisedAnimatedDigit(
-                    milliseconds: 500,
-                    value: snapshot.data ?? 0.0,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.blueGrey,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    decimal: const FlutterLogo(),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    digitsSeparator: const Text('\$'),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    decimal: const FlutterLogo(),
-                    digitsSeparator: const Text('\$'),
-                  ),
-                ],
-              ),
-            );
-          }),
+      body: Center(
+        child: StreamBuilder<num>(
+            stream: streamController.stream,
+            builder: (context, snapshot) {
+              return OptimisedAnimatedDigit(
+                milliseconds: 100,
+                value: snapshot.data ?? 0.0,
+                positiveColor: Colors.green,
+                negativeColor: Colors.red,
+                neutralColor: Colors.black,
+                textStyle: const TextStyle(fontSize: 20),
+                decimal: const FlutterLogo(),
+                digitsSeparator: const Text('\$'),
+              );
+            }),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           double value = openPrice = openPrice +

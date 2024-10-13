@@ -1,7 +1,42 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:optimised_animated_digits/digits_extractor.dart';
 
 part 'single_sequence.dart';
+
+
+class PrevValueHolderNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
+  /// Creates a [ChangeNotifier] that wraps this value.
+  PrevValueHolderNotifier(this._value):_prevValue = _value {
+    if (kFlutterMemoryAllocationsEnabled) {
+      ChangeNotifier.maybeDispatchObjectCreation(this);
+    }
+  }
+
+  /// The current value stored in this notifier.
+  ///
+  /// When the value is replaced with something that is not equal to the old
+  /// value as evaluated by the equality operator ==, this class notifies its
+  /// listeners.
+  @override
+  T get value => _value;
+  T _value;
+
+  T _prevValue;
+  T get prevValue => _prevValue;
+
+  set value(T newValue) {
+    if (_value == newValue) {
+      return;
+    }
+    _prevValue = value;
+    _value = newValue;
+    notifyListeners();
+  }
+
+  @override
+  String toString() => '${describeIdentity(this)}($prevValue)($value)';
+}
 
 class OptimisedAnimatedDigit extends StatefulWidget {
   OptimisedAnimatedDigit({
@@ -20,7 +55,7 @@ class OptimisedAnimatedDigit extends StatefulWidget {
     _negativeColor = negativeColor ?? Colors.black;
     _positiveColor = positiveColor ?? Colors.black;
     _neutralColor = neutralColor ?? Colors.black;
-    _digitsExtractor = DigitsExtractor(numericValue: value);
+    _digits = generateDigits(value);
   }
   final num value;
   late final Color _negativeColor;
@@ -30,16 +65,16 @@ class OptimisedAnimatedDigit extends StatefulWidget {
   final int milliseconds;
   final Widget? decimal;
   final Widget? digitsSeparator;
-  late final DigitsExtractor _digitsExtractor;
+  late final List<String> _digits;
   @override
   State<OptimisedAnimatedDigit> createState() => _OptimisedAnimatedDigitState();
 }
 
 class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     with TickerProviderStateMixin {
-  late AnimationController animationController;
+  late final AnimationController animationController;
   late Color digitsColor;
-  late DigitsExtractor digitsExtractor;
+  final StartColourIndex startColorIndex = StartColourIndex();
 
   @override
   void initState() {
@@ -50,19 +85,16 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         milliseconds: widget.milliseconds,
       ),
     );
-    digitsExtractor = widget._digitsExtractor;
     digitsColor = widget._neutralColor;
   }
 
   @override
   void didUpdateWidget(covariant OptimisedAnimatedDigit oldWidget) {
     super.didUpdateWidget(oldWidget);
-    digitsExtractor = widget._digitsExtractor;
     num tempOldValue = oldWidget.value;
     num tempNewValue = widget.value;
     if (tempNewValue != tempOldValue) {
-      digitsExtractor
-          .calculateFirstUnMatchedIndex(oldWidget._digitsExtractor.list);
+      startColorIndex.updateOldDigitsList(oldWidget._digits);
       if (tempNewValue < tempOldValue) {
         digitsColor = widget._negativeColor;
       } else if (tempNewValue > tempOldValue) {
@@ -74,8 +106,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     }
   }
 
-  InlineSpan _getDecimalSpan() {
-    Widget? decimal = widget.decimal;
+  InlineSpan _getDecimalSpan(Widget? decimal) {
     if (decimal != null) {
       return _separatorInlineSpan(decimal);
     } else {
@@ -110,21 +141,25 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     );
   }
 
-  InlineSpan _itemBuilder(String value, Color digitColor) {
+  InlineSpan _itemBuilder(
+    String value,
+    Color digitColor,
+    bool isFractional,
+    Widget? digitsSeparator,
+    Widget? decimal,
+  ) {
     if (value == '.') {
-      return _getDecimalSpan();
+      return _getDecimalSpan(decimal);
     } else {
       PlaceholderAlignment alignment = PlaceholderAlignment.middle;
-      if (digitsExtractor.isFractional &&
-          widget.decimal == null &&
-          widget.digitsSeparator == null) {
+      if (isFractional && decimal == null && digitsSeparator == null) {
         alignment = PlaceholderAlignment.baseline;
       }
       return WidgetSpan(
         baseline: TextBaseline.alphabetic,
         alignment: alignment,
         child: _SingleSequence(
-          value: value,
+          value: num.parse(value),
           animation: animationController.view,
           digitColor: digitColor,
           textStyle: widget.textStyle,
@@ -135,14 +170,18 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
 
   @override
   Widget build(BuildContext context) {
+    List<String> digitsList = widget._digits;
+    int unMatchedIndex =
+        startColorIndex.calculateFirstUnMatchedIndex(widget._digits);
+    bool isFractional = containsDecimal(widget.value);
+    Widget? digitsSeparator = widget.digitsSeparator;
+    Widget? decimal = widget.decimal;
     List<InlineSpan> widgetSpanFirst = [];
     int index = 0;
-    if (digitsExtractor.list.first == '-') {
+    if (digitsList.first == '-') {
       index = 1;
       PlaceholderAlignment signAlignment = PlaceholderAlignment.baseline;
-      if (digitsExtractor.isFractional &&
-          widget.decimal == null &&
-          widget.digitsSeparator == null) {
+      if (isFractional && widget.decimal == null && digitsSeparator == null) {
         signAlignment = PlaceholderAlignment.middle;
       }
 
@@ -154,8 +193,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
       );
     }
 
-    Widget? digitsSeparator = widget.digitsSeparator;
-    int end = digitsExtractor.list.length;
+    int end = digitsList.length;
 
     if (digitsSeparator != null) {
       end = (end * 2) - 1;
@@ -164,10 +202,13 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         if (i.isEven) {
           widgetSpanFirst.add(
             _itemBuilder(
-              digitsExtractor.list[calculatedIndex],
-              calculatedIndex >= digitsExtractor.firstMatchedIndex
+              digitsList[calculatedIndex],
+              calculatedIndex >= unMatchedIndex
                   ? digitsColor
                   : widget._neutralColor,
+              isFractional,
+              digitsSeparator,
+              decimal,
             ),
           );
         } else {
@@ -178,10 +219,11 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
       for (int i = index; i < end; i++) {
         widgetSpanFirst.add(
           _itemBuilder(
-            digitsExtractor.list[i],
-            i >= digitsExtractor.firstMatchedIndex
-                ? digitsColor
-                : widget._neutralColor,
+            digitsList[i],
+            i >= unMatchedIndex ? digitsColor : widget._neutralColor,
+            isFractional,
+            digitsSeparator,
+            decimal,
           ),
         );
       }

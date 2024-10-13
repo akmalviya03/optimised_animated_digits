@@ -1,58 +1,64 @@
-class DigitsExtractor {
-  String _value;
+class StartColourIndex {
+  List<String>? _oldList;
 
-  late List<String> _list;
+  StartColourIndex();
 
-  int _firstUnMatchedIndex = 0;
-
-  int get firstMatchedIndex => _firstUnMatchedIndex;
-  List<String> get list => _list;
-
-  DigitsExtractor({required num numericValue}) : _value = "$numericValue" {
-    _checkAndAssignValueToList();
+  void updateOldDigitsList(List<String> oldList) {
+    _oldList = oldList;
   }
 
-  void _containsDecimal(String value) {
-    _isFractional = value.contains('.');
-  }
-
-  bool _isFractional = false;
-
-  bool get isFractional => _isFractional;
-
-  void _checkAndAssignValueToList() {
-    _containsDecimal(_value);
-    if (isFractional) {
-      List<String> tempList = _value.split('.');
-
-      String last = tempList.last;
-
-      if (last.length > 2) {
-        last = last.substring(0, 2);
+  int calculateFirstUnMatchedIndex(List<String> currentList) {
+    List<String>? oldList = _oldList;
+    if (oldList != null) {
+      if (currentList.length < oldList.length ||
+          currentList.length > oldList.length) {
+        return 0;
       } else {
-        last.padRight(2, '0');
-      }
-      _list = [...tempList.first.split(''), '.', ...last.split('')];
-    } else {
-      _list = _value.split('');
-    }
-  }
-
-  void calculateFirstUnMatchedIndex(List<String> list) {
-    if (_list.length < list.length || _list.length > list.length) {
-      _firstUnMatchedIndex = 0;
-    } else {
-      for (int i = 0; i < _list.length; i++) {
-        if (_list[i] != list[i]) {
-          _firstUnMatchedIndex = i;
-          break;
+        for (int i = 0; i < oldList.length; i++) {
+          if (currentList[i] != oldList[i]) {
+            return i;
+          }
         }
       }
     }
+    return 0;
   }
+}
 
-  void updateWith({required num value}) {
-    _value = "$value";
-    _checkAndAssignValueToList();
+bool containsDecimal(num value) {
+  return value is! int;
+}
+
+List<String> generateDigits(num value) {
+  bool isFractional = containsDecimal(value);
+  String stringValue = "$value";
+  if (isFractional) {
+    List<String> tempList = stringValue.split('.');
+
+    String exponent = tempList[1];
+    String mantissa = tempList[0];
+    int mantissaLength = mantissa.length;
+
+    List<String> characters = <String>[];
+
+    for(int i=0; i<mantissaLength ; i++){
+      characters.add(mantissa[i]);
+    }
+    characters.add('.');
+
+    if (exponent.length >= 2) {
+      exponent = exponent.substring(0, 2);
+
+    } else {
+      exponent = exponent.padRight(2, '0');
+    }
+
+    for(int i=0; i<exponent.length ; i++){
+      characters.add(exponent[i]);
+    }
+
+    return characters;
+  } else {
+    return stringValue.split('');
   }
 }

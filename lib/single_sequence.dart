@@ -7,7 +7,7 @@ class _SingleSequence extends StatefulWidget {
     required this.digitColor,
     required this.textStyle,
   });
-  final String value;
+  final num value;
   final Animation<double> animation;
   final Color digitColor;
   final TextStyle textStyle;
@@ -24,14 +24,14 @@ class _SingleSequenceState extends State<_SingleSequence> {
   void initState() {
     super.initState();
     _animation = widget.animation;
-    _newValue = int.parse(widget.value);
+    _newValue = widget.value;
   }
 
   @override
   void didUpdateWidget(covariant _SingleSequence oldWidget) {
     super.didUpdateWidget(oldWidget);
-    num tempOldValue = int.parse(oldWidget.value);
-    num tempNewValue = int.parse(widget.value);
+    num tempOldValue = oldWidget.value;
+    num tempNewValue = widget.value;
 
     if (tempNewValue < tempOldValue) {
       _oldValue = tempNewValue;
