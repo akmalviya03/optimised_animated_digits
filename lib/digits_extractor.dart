@@ -38,12 +38,12 @@ class DigitsExtractor {
     }
   }
 
-  void calculateFirstUnMatchedIndex(List<String> list){
-    if (_list.length < list.length || _list.length  > list.length) {
+  void calculateFirstUnMatchedIndex(List<String> list) {
+    if (_list.length < list.length || _list.length > list.length) {
       _firstUnMatchedIndex = 0;
-    }else{
-      for(int i =0 ; i< _list.length ; i++){
-        if(_list[i] != list[i]){
+    } else {
+      for (int i = 0; i < _list.length; i++) {
+        if (_list[i] != list[i]) {
           _firstUnMatchedIndex = i;
           break;
         }

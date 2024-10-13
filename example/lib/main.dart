@@ -105,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
           }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          double value =openPrice= openPrice +
+          double value = openPrice = openPrice +
               (random.nextBool() ? random.nextDouble() : -random.nextDouble());
           streamController.add(value);
         },
