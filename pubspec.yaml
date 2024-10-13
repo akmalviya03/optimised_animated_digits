@@ -1,0 +1,19 @@
+name: optimised_animated_digits
+description: """A widget that allows you to animated digits change of any number 
+without compromising number precision and application performance.
+"""
+version: 0.0.1
+homepage: https://github.com/akmalviya03/optimised_animated_digits.git
+
+environment:
+  sdk: ^3.5.3
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
