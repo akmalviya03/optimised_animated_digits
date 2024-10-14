@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'dart:math';
+import 'package:advanced_value_notifier/advanced_value_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:optimised_animated_digits/optimised_animated_digits.dart';
 
@@ -25,89 +25,40 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final StreamController<num> streamController = StreamController();
+  TransformerHistoryValueNotifier<num, List<String>> valueNotifier =
+      TransformerHistoryValueNotifier(
+    value: 0.0,
+    transformer: generateDigits,
+  );
   Random random = Random();
   double openPrice = 500;
 
   @override
   void dispose() {
-    streamController.close();
+    valueNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder<num>(
-          stream: streamController.stream,
-          builder: (context, snapshot) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  OptimisedAnimatedDigit(
-                    milliseconds: 500,
-                    value: snapshot.data ?? 0.0,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.blueGrey,
-                    textStyle: const TextStyle(fontSize: 20),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    decimal: const FlutterLogo(),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    digitsSeparator: const Text('\$'),
-                  ),
-                  OptimisedAnimatedDigit(
-                    milliseconds: 100,
-                    value: snapshot.data ?? 0.0,
-                    positiveColor: Colors.green,
-                    negativeColor: Colors.red,
-                    neutralColor: Colors.black,
-                    textStyle: const TextStyle(fontSize: 20),
-                    decimal: const FlutterLogo(),
-                    digitsSeparator: const Text('\$'),
-                  ),
-                ],
-              ),
-            );
-          }),
+      body: Center(
+        child: OptimisedAnimatedDigit(
+          milliseconds: 100,
+          valueNotifier: valueNotifier,
+          positiveColor: Colors.green,
+          negativeColor: Colors.red,
+          neutralColor: Colors.black,
+          textStyle: const TextStyle(fontSize: 20),
+          decimal: const FlutterLogo(),
+          digitsSeparator: const Text('\$'),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           double value = openPrice = openPrice +
               (random.nextBool() ? random.nextDouble() : -random.nextDouble());
-          streamController.add(value);
+          valueNotifier.value = value;
         },
         label: const Text('Generate'),
       ),

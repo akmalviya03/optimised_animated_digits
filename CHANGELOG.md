@@ -1,3 +1,6 @@
+## 0.0.5
+* Optimised logics
+
 ## 0.0.4
 
 * Update colors only changed right most digits

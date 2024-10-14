@@ -1,3 +1,4 @@
+import 'package:advanced_value_notifier/advanced_value_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:optimised_animated_digits/digits_extractor.dart';
 
@@ -6,7 +7,7 @@ part 'single_sequence.dart';
 class OptimisedAnimatedDigit extends StatefulWidget {
   OptimisedAnimatedDigit({
     super.key,
-    required this.value,
+    required this.valueNotifier,
     Color? negativeColor,
     Color? positiveColor,
     Color? neutralColor,
@@ -20,9 +21,8 @@ class OptimisedAnimatedDigit extends StatefulWidget {
     _negativeColor = negativeColor ?? Colors.black;
     _positiveColor = positiveColor ?? Colors.black;
     _neutralColor = neutralColor ?? Colors.black;
-    _digitsExtractor = DigitsExtractor(numericValue: value);
   }
-  final num value;
+  final TransformerHistoryValueNotifier<num, List<String>> valueNotifier;
   late final Color _negativeColor;
   late final Color _positiveColor;
   late final Color _neutralColor;
@@ -30,16 +30,14 @@ class OptimisedAnimatedDigit extends StatefulWidget {
   final int milliseconds;
   final Widget? decimal;
   final Widget? digitsSeparator;
-  late final DigitsExtractor _digitsExtractor;
+
   @override
   State<OptimisedAnimatedDigit> createState() => _OptimisedAnimatedDigitState();
 }
 
 class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     with TickerProviderStateMixin {
-  late AnimationController animationController;
-  late Color digitsColor;
-  late DigitsExtractor digitsExtractor;
+  late final AnimationController animationController;
 
   @override
   void initState() {
@@ -50,46 +48,19 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
         milliseconds: widget.milliseconds,
       ),
     );
-    digitsExtractor = widget._digitsExtractor;
-    digitsColor = widget._neutralColor;
   }
 
-  @override
-  void didUpdateWidget(covariant OptimisedAnimatedDigit oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    digitsExtractor = widget._digitsExtractor;
-    num tempOldValue = oldWidget.value;
-    num tempNewValue = widget.value;
-    if (tempNewValue != tempOldValue) {
-      digitsExtractor
-          .calculateFirstUnMatchedIndex(oldWidget._digitsExtractor.list);
-      if (tempNewValue < tempOldValue) {
-        digitsColor = widget._negativeColor;
-      } else if (tempNewValue > tempOldValue) {
-        digitsColor = widget._positiveColor;
-      } else {
-        digitsColor = widget._negativeColor;
-      }
-      animationController.forward(from: 0);
-    }
-  }
-
-  InlineSpan _getDecimalSpan() {
-    Widget? decimal = widget.decimal;
+  InlineSpan _getDecimalSpan(Widget? decimal, Color digitsColor) {
     if (decimal != null) {
       return _separatorInlineSpan(decimal);
     } else {
       return _singleCharInlineSpan(
-        '.',
-        PlaceholderAlignment.baseline,
-      );
+          '.', PlaceholderAlignment.baseline, digitsColor);
     }
   }
 
-  InlineSpan _singleCharInlineSpan(
-    String char,
-    PlaceholderAlignment placeHolderAlignment,
-  ) {
+  InlineSpan _singleCharInlineSpan(String char,
+      PlaceholderAlignment placeHolderAlignment, Color digitsColor) {
     return WidgetSpan(
       child: Text(
         char,
@@ -110,21 +81,25 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     );
   }
 
-  InlineSpan _itemBuilder(String value, Color digitColor) {
+  InlineSpan _itemBuilder(
+    String value,
+    Color digitColor,
+    bool isFractional,
+    Widget? digitsSeparator,
+    Widget? decimal,
+  ) {
     if (value == '.') {
-      return _getDecimalSpan();
+      return _getDecimalSpan(decimal, digitColor);
     } else {
       PlaceholderAlignment alignment = PlaceholderAlignment.middle;
-      if (digitsExtractor.isFractional &&
-          widget.decimal == null &&
-          widget.digitsSeparator == null) {
+      if (isFractional && decimal == null && digitsSeparator == null) {
         alignment = PlaceholderAlignment.baseline;
       }
       return WidgetSpan(
         baseline: TextBaseline.alphabetic,
         alignment: alignment,
         child: _SingleSequence(
-          value: value,
+          value: num.parse(value),
           animation: animationController.view,
           digitColor: digitColor,
           textStyle: widget.textStyle,
@@ -135,62 +110,106 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
 
   @override
   Widget build(BuildContext context) {
-    List<InlineSpan> widgetSpanFirst = [];
-    int index = 0;
-    if (digitsExtractor.list.first == '-') {
-      index = 1;
-      PlaceholderAlignment signAlignment = PlaceholderAlignment.baseline;
-      if (digitsExtractor.isFractional &&
-          widget.decimal == null &&
-          widget.digitsSeparator == null) {
-        signAlignment = PlaceholderAlignment.middle;
-      }
+    return TransformerHistoryValueListenableBuilder<num, List<String>>(
+      transformerHistoryValueNotifier: widget.valueNotifier,
+      transformerHistoryValueBuilder: (BuildContext context,
+          num? nullablePrevValue,
+          List<String>? nullablePrevDigitsList,
+          num value,
+          List<String> digitsList,
+          Widget? child) {
+        Color digitColor = widget._neutralColor;
+        int index = 0;
+        List<InlineSpan> inlineSpansList = [];
+        Widget? digitsSeparator = widget.digitsSeparator;
+        Widget? decimal = widget.decimal;
+        bool isFractional = containsDecimal(value);
+        if (digitsList.first == '-') {
+          index = 1;
+          PlaceholderAlignment signAlignment = PlaceholderAlignment.baseline;
+          if (isFractional && decimal == null && digitsSeparator == null) {
+            signAlignment = PlaceholderAlignment.middle;
+          }
 
-      widgetSpanFirst.add(
-        _singleCharInlineSpan(
-          '-',
-          signAlignment,
-        ),
-      );
-    }
-
-    Widget? digitsSeparator = widget.digitsSeparator;
-    int end = digitsExtractor.list.length;
-
-    if (digitsSeparator != null) {
-      end = (end * 2) - 1;
-      for (int i = index; i < end; i++) {
-        int calculatedIndex = i ~/ 2;
-        if (i.isEven) {
-          widgetSpanFirst.add(
-            _itemBuilder(
-              digitsExtractor.list[calculatedIndex],
-              calculatedIndex >= digitsExtractor.firstMatchedIndex
-                  ? digitsColor
-                  : widget._neutralColor,
-            ),
+          inlineSpansList.add(
+            _singleCharInlineSpan('-', signAlignment, digitColor),
           );
-        } else {
-          widgetSpanFirst.add(_separatorInlineSpan(digitsSeparator));
         }
-      }
-    } else {
-      for (int i = index; i < end; i++) {
-        widgetSpanFirst.add(
-          _itemBuilder(
-            digitsExtractor.list[i],
-            i >= digitsExtractor.firstMatchedIndex
-                ? digitsColor
-                : widget._neutralColor,
+
+        num? canBeNullAblePrevValue = nullablePrevValue;
+        List<String>? canBeNullablePrevDigitsList = nullablePrevDigitsList;
+
+        int end = digitsList.length;
+
+        if (canBeNullAblePrevValue != null &&
+            canBeNullablePrevDigitsList != null) {
+          ///Select Digits Color
+          if (value < canBeNullAblePrevValue) {
+            digitColor = widget._negativeColor;
+          } else if (value > canBeNullAblePrevValue) {
+            digitColor = widget._positiveColor;
+          } else {
+            digitColor = widget._neutralColor;
+          }
+
+          int unMatchedIndex = calculateFirstUnMatchedIndex(
+              currentList: canBeNullablePrevDigitsList, oldList: digitsList);
+
+          if (digitsSeparator != null) {
+            end = (end * 2) - 1;
+            for (int i = index; i < end; i++) {
+              int calculatedIndex = i ~/ 2;
+              if (i.isEven) {
+                inlineSpansList.add(
+                  _itemBuilder(
+                    digitsList[calculatedIndex],
+                    calculatedIndex >= unMatchedIndex
+                        ? digitColor
+                        : widget._neutralColor,
+                    isFractional,
+                    digitsSeparator,
+                    decimal,
+                  ),
+                );
+              } else {
+                inlineSpansList.add(_separatorInlineSpan(digitsSeparator));
+              }
+            }
+          } else {
+            for (int i = index; i < end; i++) {
+              inlineSpansList.add(
+                _itemBuilder(
+                  digitsList[i],
+                  i >= unMatchedIndex ? digitColor : widget._neutralColor,
+                  isFractional,
+                  digitsSeparator,
+                  decimal,
+                ),
+              );
+            }
+          }
+        } else {
+          for (int i = index; i < end; i++) {
+            inlineSpansList.add(
+              _itemBuilder(
+                digitsList[i],
+                digitColor,
+                isFractional,
+                digitsSeparator,
+                decimal,
+              ),
+            );
+          }
+        }
+
+        animationController.forward(from: 0);
+
+        return Text.rich(
+          TextSpan(
+            children: inlineSpansList,
           ),
         );
-      }
-    }
-
-    return Text.rich(
-      TextSpan(
-        children: widgetSpanFirst,
-      ),
+      },
     );
   }
 }
