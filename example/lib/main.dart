@@ -25,7 +25,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  HistoryValueNotifier<num> valueNotifier = HistoryValueNotifier(0.0);
+  TransformerHistoryValueNotifier<num, List<String>> valueNotifier =
+      TransformerHistoryValueNotifier(
+    value: 0.0,
+    transformer: generateDigits,
+  );
   Random random = Random();
   double openPrice = 500;
 
