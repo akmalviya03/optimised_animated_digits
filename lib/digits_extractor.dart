@@ -1,28 +1,17 @@
-class StartColourIndex {
-  List<String>? _oldList;
-
-  StartColourIndex();
-
-  void updateOldDigitsList(List<String> oldList) {
-    _oldList = oldList;
-  }
-
-  int calculateFirstUnMatchedIndex(List<String> currentList) {
-    List<String>? oldList = _oldList;
-    if (oldList != null) {
-      if (currentList.length < oldList.length ||
-          currentList.length > oldList.length) {
-        return 0;
-      } else {
-        for (int i = 0; i < oldList.length; i++) {
-          if (currentList[i] != oldList[i]) {
-            return i;
-          }
-        }
+int calculateFirstUnMatchedIndex(
+    {required List<String> currentList, required List<String> oldList}) {
+  if (currentList.length < oldList.length ||
+      currentList.length > oldList.length) {
+    return 0;
+  } else {
+    for (int i = 0; i < oldList.length; i++) {
+      if (currentList[i] != oldList[i]) {
+        return i;
       }
     }
-    return 0;
   }
+
+  return 0;
 }
 
 bool containsDecimal(num value) {
@@ -41,19 +30,18 @@ List<String> generateDigits(num value) {
 
     List<String> characters = <String>[];
 
-    for(int i=0; i<mantissaLength ; i++){
+    for (int i = 0; i < mantissaLength; i++) {
       characters.add(mantissa[i]);
     }
     characters.add('.');
 
     if (exponent.length >= 2) {
       exponent = exponent.substring(0, 2);
-
     } else {
       exponent = exponent.padRight(2, '0');
     }
 
-    for(int i=0; i<exponent.length ; i++){
+    for (int i = 0; i < exponent.length; i++) {
       characters.add(exponent[i]);
     }
 

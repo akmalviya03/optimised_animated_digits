@@ -1,6 +1,5 @@
-import 'dart:async';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+import 'package:advanced_value_notifier/advanced_value_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:optimised_animated_digits/optimised_animated_digits.dart';
 
@@ -26,41 +25,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final StreamController<num> streamController = StreamController();
+  HistoryValueNotifier<num> valueNotifier = HistoryValueNotifier(0.0);
   Random random = Random();
   double openPrice = 500;
 
   @override
   void dispose() {
-    streamController.close();
+    valueNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    ValueNotifier
     return Scaffold(
       body: Center(
-        child: StreamBuilder<num>(
-            stream: streamController.stream,
-            builder: (context, snapshot) {
-              return OptimisedAnimatedDigit(
-                milliseconds: 100,
-                value: snapshot.data ?? 0.0,
-                positiveColor: Colors.green,
-                negativeColor: Colors.red,
-                neutralColor: Colors.black,
-                textStyle: const TextStyle(fontSize: 20),
-                decimal: const FlutterLogo(),
-                digitsSeparator: const Text('\$'),
-              );
-            }),
+        child: OptimisedAnimatedDigit(
+          milliseconds: 100,
+          valueNotifier: valueNotifier,
+          positiveColor: Colors.green,
+          negativeColor: Colors.red,
+          neutralColor: Colors.black,
+          textStyle: const TextStyle(fontSize: 20),
+          decimal: const FlutterLogo(),
+          digitsSeparator: const Text('\$'),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           double value = openPrice = openPrice +
               (random.nextBool() ? random.nextDouble() : -random.nextDouble());
-          streamController.add(value);
+          valueNotifier.value = value;
         },
         label: const Text('Generate'),
       ),
