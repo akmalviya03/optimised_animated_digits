@@ -5,10 +5,10 @@ packages:
     dependency: "direct main"
     description:
       name: advanced_value_notifier
-      sha256: "4384342e281022ab1944091cc00bb29285e330b69817f2e4c2ab51dadb004f24"
+      sha256: "8989e650f8fda76b7be23750a7f91ae1f0a82099482a18ca3de9b0be62b94850"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.2+2"
+    version: "0.0.4"
   async:
     dependency: transitive
     description:
@@ -145,7 +145,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.0.4+3"
+    version: "0.0.5+2"
   path:
     dependency: transitive
     description:

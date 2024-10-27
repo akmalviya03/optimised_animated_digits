@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   optimised_animated_digits:
     path: ..
-  advanced_value_notifier: ^0.0.2+2
+  advanced_value_notifier: ^0.0.4
 
 dev_dependencies:
   flutter_test:

@@ -111,7 +111,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
   @override
   Widget build(BuildContext context) {
     return TransformerHistoryValueListenableBuilder<num, List<String>>(
-      transformerHistoryValueNotifier: widget.valueNotifier,
+      transformerHistoryValueListenable: widget.valueNotifier,
       transformerHistoryValueBuilder: (BuildContext context,
           num? nullablePrevValue,
           List<String>? nullablePrevDigitsList,
