@@ -1,4 +1,7 @@
 ## 0.0.5
+* Pass ValueNotifier instead of maintaining TransformerHistoryValueNotifier
+
+## 0.0.5
 * Optimised logics
 
 ## 0.0.4

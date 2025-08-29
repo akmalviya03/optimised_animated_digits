@@ -22,7 +22,7 @@ class OptimisedAnimatedDigit extends StatefulWidget {
     _positiveColor = positiveColor ?? Colors.black;
     _neutralColor = neutralColor ?? Colors.black;
   }
-  final TransformerHistoryValueNotifier<num, List<String>> valueNotifier;
+  final ValueNotifier<num> valueNotifier;
   late final Color _negativeColor;
   late final Color _positiveColor;
   late final Color _neutralColor;
@@ -37,17 +37,57 @@ class OptimisedAnimatedDigit extends StatefulWidget {
 
 class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
     with TickerProviderStateMixin {
-  late final AnimationController animationController;
-
+  late AnimationController animationController;
+  late TransformerHistoryValueNotifier<num, List<String>>
+      transformerHistoryValueNotifier;
   @override
   void initState() {
     super.initState();
+    widget.valueNotifier.addListener(listenToValue);
+    transformerHistoryValueNotifier = TransformerHistoryValueNotifier(
+      value: widget.valueNotifier.value,
+      transformer: generateDigits,
+    );
     animationController = AnimationController(
       vsync: this,
       duration: Duration(
         milliseconds: widget.milliseconds,
       ),
     );
+  }
+
+  void listenToValue() {
+    transformerHistoryValueNotifier.value = widget.valueNotifier.value;
+  }
+
+  @override
+  void didUpdateWidget(OptimisedAnimatedDigit oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    transformerHistoryValueNotifier.dispose();
+    transformerHistoryValueNotifier = TransformerHistoryValueNotifier(
+      value: widget.valueNotifier.value,
+      transformer: generateDigits,
+    );
+    if (widget.milliseconds != oldWidget.milliseconds) {
+      animationController.dispose();
+      animationController = AnimationController(
+        vsync: this,
+        duration: Duration(
+          milliseconds: widget.milliseconds,
+        ),
+      );
+    }
+
+    oldWidget.valueNotifier.removeListener(listenToValue);
+    widget.valueNotifier.addListener(listenToValue);
+  }
+
+  @override
+  void dispose() {
+    animationController.dispose();
+    widget.valueNotifier.removeListener(listenToValue);
+    transformerHistoryValueNotifier.dispose();
+    super.dispose();
   }
 
   InlineSpan _getDecimalSpan(Widget? decimal, Color digitsColor) {
@@ -111,7 +151,7 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
   @override
   Widget build(BuildContext context) {
     return TransformerHistoryValueListenableBuilder<num, List<String>>(
-      transformerHistoryValueListenable: widget.valueNotifier,
+      transformerHistoryValueListenable: transformerHistoryValueNotifier,
       transformerHistoryValueBuilder: (BuildContext context,
           num? nullablePrevValue,
           List<String>? nullablePrevDigitsList,
@@ -189,16 +229,36 @@ class _OptimisedAnimatedDigitState extends State<OptimisedAnimatedDigit>
             }
           }
         } else {
-          for (int i = index; i < end; i++) {
-            inlineSpansList.add(
-              _itemBuilder(
-                digitsList[i],
-                digitColor,
-                isFractional,
-                digitsSeparator,
-                decimal,
-              ),
-            );
+          if (digitsSeparator != null) {
+            end = (end * 2) - 1;
+            for (int i = index; i < end; i++) {
+              int calculatedIndex = i ~/ 2;
+              if (i.isEven) {
+                inlineSpansList.add(
+                  _itemBuilder(
+                    digitsList[calculatedIndex],
+                    digitColor,
+                    isFractional,
+                    digitsSeparator,
+                    decimal,
+                  ),
+                );
+              } else {
+                inlineSpansList.add(_separatorInlineSpan(digitsSeparator));
+              }
+            }
+          } else {
+            for (int i = index; i < end; i++) {
+              inlineSpansList.add(
+                _itemBuilder(
+                  digitsList[i],
+                  digitColor,
+                  isFractional,
+                  digitsSeparator,
+                  decimal,
+                ),
+              );
+            }
           }
         }
 
