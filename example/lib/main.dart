@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:advanced_value_notifier/advanced_value_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:optimised_animated_digits/optimised_animated_digits.dart';
 
@@ -25,17 +24,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  TransformerHistoryValueNotifier<num, List<String>> valueNotifier =
-      TransformerHistoryValueNotifier(
-    value: 0.0,
-    transformer: generateDigits,
-  );
+  ValueNotifier<double> valueNotifierFirst = ValueNotifier(0);
+  ValueNotifier<double> valueNotifierSecond = ValueNotifier(10.0);
+  ValueNotifier<bool> visibility = ValueNotifier(false);
   Random random = Random();
   double openPrice = 500;
 
   @override
   void dispose() {
-    valueNotifier.dispose();
+    valueNotifierFirst.dispose();
+    valueNotifierSecond.dispose();
+    visibility.dispose();
     super.dispose();
   }
 
@@ -43,24 +42,58 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: OptimisedAnimatedDigit(
-          milliseconds: 100,
-          valueNotifier: valueNotifier,
-          positiveColor: Colors.green,
-          negativeColor: Colors.red,
-          neutralColor: Colors.black,
-          textStyle: const TextStyle(fontSize: 20),
-          decimal: const FlutterLogo(),
-          digitsSeparator: const Text('\$'),
-        ),
+        child: ValueListenableBuilder(
+            valueListenable: visibility,
+            builder: (context, value, child) {
+              return value
+                  ? OptimisedAnimatedDigit(
+                      milliseconds: 100,
+                      valueNotifier: valueNotifierFirst,
+                      positiveColor: Colors.green,
+                      negativeColor: Colors.red,
+                      neutralColor: Colors.black,
+                      textStyle: const TextStyle(fontSize: 20),
+                      decimal: const FlutterLogo(),
+                      digitsSeparator: const Text('\$'),
+                    )
+                  : OptimisedAnimatedDigit(
+                      milliseconds: 200,
+                      valueNotifier: valueNotifierSecond,
+                      positiveColor: Colors.green,
+                      negativeColor: Colors.red,
+                      neutralColor: Colors.black,
+                      textStyle: const TextStyle(fontSize: 20),
+                      decimal: const FlutterLogo(),
+                      digitsSeparator: const Text('\$'),
+                    );
+            }),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          double value = openPrice = openPrice +
-              (random.nextBool() ? random.nextDouble() : -random.nextDouble());
-          valueNotifier.value = value;
-        },
-        label: const Text('Generate'),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: "Visibility",
+            onPressed: () {
+              visibility.value = !visibility.value;
+            },
+            label: const Text('Toggle Visibility'),
+          ),
+          FloatingActionButton.extended(
+            heroTag: "Generate",
+            onPressed: () {
+              double value = openPrice = openPrice +
+                  (random.nextBool()
+                      ? random.nextDouble()
+                      : -random.nextDouble());
+              if (visibility.value) {
+                valueNotifierFirst.value = value;
+              } else {
+                valueNotifierSecond.value = value;
+              }
+            },
+            label: const Text('Generate'),
+          ),
+        ],
       ),
     );
   }
