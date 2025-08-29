@@ -16,6 +16,7 @@ without compromising number precision and application performance.
 ## Usage
 
 ```dart
+    ValueNotifier<double> valueNotifier = ValueNotifier(0);
     OptimisedAnimatedDigit(
       milliseconds: 500,
       valueNotifier: valueNotifier,
