@@ -2,13 +2,11 @@ A widget that allows you to animate digits change of any number
 without compromising number precision and application performance.
 
 ## Features
+* 58 FPS in debug mode.
 * 60 FPS.
 * Low memory usage.
 * No use of scroll views for scrolling effects.
 * Jank Free
-
-This package depends on [Advanced Value Notifier](https://pub.dev/packages/advanced_value_notifier)
-You will need to add this one also as an dependency. To fully utilise this package.
 
 ## Demo Video
 
